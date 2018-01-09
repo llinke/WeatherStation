@@ -1,0 +1,22 @@
+{
+    "configurations": [{
+        "name": "Win32",
+        "includePath": [
+            "C:\\Program Files (x86)\\Arduino\\hardware\\arduino\\avr\\cores\\arduino",
+            "C:\\Users\\a416353\\AppData\\Local\\Arduino15\\packages\\esp8266\\hardware\\esp8266\\2.4.0\\cores\\esp8266",
+            "C:\\Users\\LLinke75\\AppData\\Local\\Arduino15\\packages\\esp8266\\hardware\\esp8266\\2.4.0\\cores\\esp8266",
+            "C:\\Users\\a416353\\Documents\\Arduino\\libraries",
+            "C:\\Users\\Lutz\\Documents\\Arduino\\libraries"
+        ],
+        "browse": {
+            "limitSymbolsToIncludedHeaders": false,
+            "path": [
+                "C:\\Program Files (x86)\\Arduino\\hardware\\arduino\\avr\\cores\\arduino",
+                "C:\\Users\\a416353\\AppData\\Local\\Arduino15\\packages\\esp8266\\hardware\\esp8266\\2.4.0\\cores\\esp8266",
+                "C:\\Users\\LLinke75\\AppData\\Local\\Arduino15\\packages\\esp8266\\hardware\\esp8266\\2.4.0\\cores\\esp8266"
+            ]
+        },
+        "intelliSenseMode": "msvc-x64"
+    }],
+    "version": 3
+}
