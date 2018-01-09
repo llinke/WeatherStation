@@ -63,7 +63,7 @@
 #define HOSTNAME "ESP8266-OTA-"
 
 // Setup
-const int UPDATE_INTERVAL_SECS = 10 * 60; // Update every 10 minutes
+const int UPDATE_INTERVAL_SECS = 600; // Update every 10 minutes
 
 #ifdef spiOLED
 // Pin definitions for SPI OLED

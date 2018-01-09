@@ -76,7 +76,8 @@ bool readyForDHTUpdate = false;
 
 String lastUpdate = "--";
 
-Ticker ticker;
+Ticker tickerWeather;
+Ticker tickerDHT;
 
 //declaring prototypes
 void configModeCallback(WiFiManager *myWiFiManager);
@@ -184,8 +185,8 @@ void setup()
 
   updateData(&display);
 
-  ticker.attach(UPDATE_INTERVAL_SECS, setReadyForWeatherUpdate);
-  ticker.attach(60, setReadyForDHTUpdate);
+  tickerDHT.attach(60, setReadyForDHTUpdate);
+  tickerWeather.attach(UPDATE_INTERVAL_SECS, setReadyForWeatherUpdate);
 }
 
 void loop()
@@ -197,10 +198,16 @@ void loop()
   }
 
   if (readyForDHTUpdate && ui.getUiState()->frameState == FIXED)
+  {
     updateDHT();
+  }
 
   int remainingTimeBudget = ui.update();
-
+  /*
+  Serial.print("Remaining time budget: ");
+  Serial.print(remainingTimeBudget);
+  Serial.println(".");
+  */
   if (remainingTimeBudget > 0)
   {
     // You can do some work here
@@ -499,7 +506,7 @@ int8_t getWifiQuality()
 
 void setReadyForWeatherUpdate()
 {
-  Serial.println("Setting readyForUpdate to true");
+  Serial.println("Setting readyForWeatherUpdate to true");
   readyForWeatherUpdate = true;
 }
 
