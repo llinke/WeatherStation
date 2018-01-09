@@ -284,8 +284,15 @@ void updateData(OLEDDisplay *display)
 // Called every 1 minute
 void updateDHT()
 {
-  humidity = dht.readHumidity();
+  Serial.println("Reading from DHT sensor...");
   temperature = dht.readTemperature(!IS_METRIC);
+  humidity = dht.readHumidity();
+
+  dtostrf(temperature, 4, 1, FormattedTemperature);
+  Serial.println("Temp: " + String(FormattedTemperature) + (IS_METRIC ? "°C" : "°F"));
+  dtostrf(humidity, 4, 1, FormattedHumidity);
+  Serial.println("Humidity: " + String(FormattedHumidity) + "%");
+
   readyForDHTUpdate = false;
 }
 
