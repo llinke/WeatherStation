@@ -97,7 +97,8 @@ int8_t getWifiQuality();
 // Add frames
 // this array keeps function pointers to all frames
 // frames are the single views that slide from right to left
-FrameCallback frames[] = {drawDateTime, drawCurrentWeather, drawIndoor, drawThingspeak, drawForecast, drawForecast2};
+//FrameCallback frames[] = {drawDateTime, drawCurrentWeather, drawIndoor, drawThingspeak, drawForecast, drawForecast2};
+FrameCallback frames[] = {drawDateTime, drawIndoor, drawThingspeak, drawCurrentWeather, drawForecast, drawForecast2};
 int numberOfFrames = 6;
 
 OverlayCallback overlays[] = {drawHeaderOverlay};
