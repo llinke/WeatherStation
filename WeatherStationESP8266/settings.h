@@ -67,9 +67,9 @@ const int UPDATE_INTERVAL_SECS = 10 * 60; // Update every 10 minutes
 
 #ifdef spiOLED
 // Pin definitions for SPI OLED
-#define OLED_CS     D8  // Chip select
-#define OLED_DC     D2  // Data/Command
-#define OLED_RESET  D0  // RESET  - If you get an error on this line, either change Tools->Board to the board you are using or change "D0" to the appropriate pin number for your board.
+#define OLED_CS D8    // Chip select
+#define OLED_DC D2    // Data/Command
+#define OLED_RESET D0 // RESET  - If you get an error on this line, either change Tools->Board to the board you are using or change "D0" to the appropriate pin number for your board.
 #endif
 
 #ifdef i2cOLED
@@ -88,7 +88,7 @@ const int SDC_PIN = D3;
 #define DHTPIN D4 // Wemos D1R2 Mini
 
 //#define DHTTYPE DHT11   // DHT 11
-#define DHTTYPE DHT22   // DHT 22  (AM2302), AM2321
+#define DHTTYPE DHT22 // DHT 22  (AM2302), AM2321
 //#define DHTTYPE DHT21   // DHT 21 (AM2301)
 
 #if DHTTYPE == DHT22
@@ -126,20 +126,19 @@ const String WUNDERGROUND_CITY = "Salzkotten";
 #endif
 
 //Thingspeak Settings
-const char* THINGSPEAK_HOST = "api.thingspeak.com";
+const char *THINGSPEAK_HOST = "api.thingspeak.com";
 const String THINGSPEAK_CHANNEL_ID = "396211";
 const String THINGSPEAK_API_READ_KEY = "8EIUTZ4ZRT73X4HQ";
 const String THINGSPEAK_API_WRITE_KEY = "9KLINGZQRT3IPO5O";
 
 #ifdef spiOLED
-SSD1306Spi display(OLED_RESET, OLED_DC, OLED_CS);  // SPI OLED
+SSD1306Spi display(OLED_RESET, OLED_DC, OLED_CS); // SPI OLED
 #endif
 #ifdef i2cOLED
-SSD1306Wire display(I2C_DISPLAY_ADDRESS, SDA_PIN, SDC_PIN);  // I2C OLED
+SSD1306Wire display(I2C_DISPLAY_ADDRESS, SDA_PIN, SDC_PIN); // I2C OLED
 #endif
 
-
-OLEDDisplayUi   ui( &display );
+OLEDDisplayUi ui(&display);
 
 // Setup simpleDSTadjust Library rules
 simpleDSTadjust dstAdjusted(StartRule, EndRule);
@@ -147,4 +146,3 @@ simpleDSTadjust dstAdjusted(StartRule, EndRule);
 /***************************
    End Settings
  **************************/
-

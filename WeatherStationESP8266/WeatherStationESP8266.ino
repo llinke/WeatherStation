@@ -59,7 +59,6 @@
 #include "DSEG7Classic-BoldFont.h"
 #include "ThingspeakClient.h"
 
-
 // Initialize Wunderground client with METRIC setting
 WundergroundClient wunderground(IS_METRIC);
 
@@ -80,32 +79,32 @@ String lastUpdate = "--";
 Ticker ticker;
 
 //declaring prototypes
-void configModeCallback (WiFiManager *myWiFiManager);
+void configModeCallback(WiFiManager *myWiFiManager);
 void drawProgress(OLEDDisplay *display, int percentage, String label);
 void drawOtaProgress(unsigned int, unsigned int);
 void updateData(OLEDDisplay *display);
-void drawDateTime(OLEDDisplay *display, OLEDDisplayUiState* state, int16_t x, int16_t y);
-void drawCurrentWeather(OLEDDisplay *display, OLEDDisplayUiState* state, int16_t x, int16_t y);
-void drawForecast(OLEDDisplay *display, OLEDDisplayUiState* state, int16_t x, int16_t y);
-void drawForecast2(OLEDDisplay *display, OLEDDisplayUiState* state, int16_t x, int16_t y);
-void drawIndoor(OLEDDisplay *display, OLEDDisplayUiState* state, int16_t x, int16_t y);
-void drawThingspeak(OLEDDisplay *display, OLEDDisplayUiState* state, int16_t x, int16_t y);
+void drawDateTime(OLEDDisplay *display, OLEDDisplayUiState *state, int16_t x, int16_t y);
+void drawCurrentWeather(OLEDDisplay *display, OLEDDisplayUiState *state, int16_t x, int16_t y);
+void drawForecast(OLEDDisplay *display, OLEDDisplayUiState *state, int16_t x, int16_t y);
+void drawForecast2(OLEDDisplay *display, OLEDDisplayUiState *state, int16_t x, int16_t y);
+void drawIndoor(OLEDDisplay *display, OLEDDisplayUiState *state, int16_t x, int16_t y);
+void drawThingspeak(OLEDDisplay *display, OLEDDisplayUiState *state, int16_t x, int16_t y);
 void drawForecastDetails(OLEDDisplay *display, int x, int y, int dayIndex);
-void drawHeaderOverlay(OLEDDisplay *display, OLEDDisplayUiState* state);
+void drawHeaderOverlay(OLEDDisplay *display, OLEDDisplayUiState *state);
 void setReadyForWeatherUpdate();
 int8_t getWifiQuality();
-
 
 // Add frames
 // this array keeps function pointers to all frames
 // frames are the single views that slide from right to left
-FrameCallback frames[] = { drawDateTime, drawCurrentWeather, drawIndoor, drawThingspeak, drawForecast, drawForecast2  };
+FrameCallback frames[] = {drawDateTime, drawCurrentWeather, drawIndoor, drawThingspeak, drawForecast, drawForecast2};
 int numberOfFrames = 6;
 
-OverlayCallback overlays[] = { drawHeaderOverlay };
+OverlayCallback overlays[] = {drawHeaderOverlay};
 int numberOfOverlays = 1;
 
-void setup() {
+void setup()
+{
   // Turn On VCC
   // pinMode(D4, OUTPUT);
   // digitalWrite(D4, HIGH);
@@ -116,7 +115,7 @@ void setup() {
   display.clear();
   display.display();
 
-  display.flipScreenVertically();  // Comment out to flip display 180deg
+  display.flipScreenVertically(); // Comment out to flip display 180deg
   display.setFont(ArialMT_Plain_10);
   display.setTextAlignment(TEXT_ALIGN_CENTER);
   display.setContrast(255);
@@ -144,7 +143,8 @@ void setup() {
   WiFi.hostname(hostname);
 
   int counter = 0;
-  while (WiFi.status() != WL_CONNECTED) {
+  while (WiFi.status() != WL_CONNECTED)
+  {
     delay(500);
     Serial.print(".");
     display.clear();
@@ -187,9 +187,11 @@ void setup() {
   ticker.attach(60, setReadyForDHTUpdate);
 }
 
-void loop() {
+void loop()
+{
 
-  if (readyForWeatherUpdate && ui.getUiState()->frameState == FIXED) {
+  if (readyForWeatherUpdate && ui.getUiState()->frameState == FIXED)
+  {
     updateData(&display);
   }
 
@@ -198,17 +200,18 @@ void loop() {
 
   int remainingTimeBudget = ui.update();
 
-  if (remainingTimeBudget > 0) {
+  if (remainingTimeBudget > 0)
+  {
     // You can do some work here
     // Don't do stuff if you are below your
     // time budget.
     ArduinoOTA.handle();
     delay(remainingTimeBudget);
   }
-
 }
 
-void configModeCallback (WiFiManager *myWiFiManager) {
+void configModeCallback(WiFiManager *myWiFiManager)
+{
   Serial.println("Entered config mode");
   Serial.println(WiFi.softAPIP());
   //if you used auto generated SSID, print it
@@ -223,7 +226,8 @@ void configModeCallback (WiFiManager *myWiFiManager) {
   display.display();
 }
 
-void drawProgress(OLEDDisplay *display, int percentage, String label) {
+void drawProgress(OLEDDisplay *display, int percentage, String label)
+{
   display->clear();
   display->setTextAlignment(TEXT_ALIGN_CENTER);
   display->setFont(ArialMT_Plain_10);
@@ -232,7 +236,8 @@ void drawProgress(OLEDDisplay *display, int percentage, String label) {
   display->display();
 }
 
-void drawOtaProgress(unsigned int progress, unsigned int total) {
+void drawOtaProgress(unsigned int progress, unsigned int total)
+{
   display.clear();
   display.setTextAlignment(TEXT_ALIGN_CENTER);
   display.setFont(ArialMT_Plain_10);
@@ -241,10 +246,11 @@ void drawOtaProgress(unsigned int progress, unsigned int total) {
   display.display();
 }
 
-void updateData(OLEDDisplay *display) {
+void updateData(OLEDDisplay *display)
+{
   drawProgress(display, 10, "Updating time...");
   configTime(UTC_OFFSET * 3600, 0, NTP_SERVERS);
-  
+
   drawProgress(display, 30, "Updating conditions...");
   wunderground.updateConditions(WUNDERGRROUND_API_KEY, WUNDERGRROUND_LANGUAGE, WUNDERGROUND_COUNTRY, WUNDERGROUND_CITY);
   drawProgress(display, 40, "Updating forecasts...");
@@ -255,37 +261,40 @@ void updateData(OLEDDisplay *display) {
   drawProgress(display, 70, "Updating DHT Sensor");
   temperature = dht.readTemperature(!IS_METRIC);
   delay(500);
-  
+
   drawProgress(display, 80, "Sending to thingspeak...");
   sendToThingSpeak();
-  
+
   drawProgress(display, 90, "Updating thingspeak...");
   thingspeak.getLastChannelItem(THINGSPEAK_CHANNEL_ID, THINGSPEAK_API_READ_KEY);
   readyForWeatherUpdate = false;
-  
+
   drawProgress(display, 100, "Done...");
   delay(1000);
 }
 
 // Called every 1 minute
-void updateDHT() {
+void updateDHT()
+{
   humidity = dht.readHumidity();
   temperature = dht.readTemperature(!IS_METRIC);
   readyForDHTUpdate = false;
 }
 
-void sendToThingSpeak() {
+void sendToThingSpeak()
+{
   Serial.print("Connecting to ");
   Serial.println(THINGSPEAK_HOST);
-    
+
   // Use WiFiClient class to create TCP connections
   WiFiClient client;
   const int httpPort = 80;
-  if (!client.connect(THINGSPEAK_HOST, httpPort)) {
+  if (!client.connect(THINGSPEAK_HOST, httpPort))
+  {
     Serial.println("Connection failed");
     return;
   }
-  
+
   // We now create a URI for the request
   String url = "/update?api_key=";
   url += THINGSPEAK_API_WRITE_KEY;
@@ -293,34 +302,37 @@ void sendToThingSpeak() {
   url += String(temperature);
   url += "&field2=";
   url += String(humidity);
-  
+
   Serial.print("Requesting URL: ");
   Serial.println(url);
-  
+
   // This will send the request to the server
   client.print(String("GET ") + url + " HTTP/1.1\r\n" +
-               "Host: " + THINGSPEAK_HOST + "\r\n" + 
+               "Host: " + THINGSPEAK_HOST + "\r\n" +
                "Connection: close\r\n\r\n");
   delay(10);
-  while(!client.available()){
+  while (!client.available())
+  {
     delay(100);
     Serial.print(".");
   }
   // Read all the lines of the reply from server and print them to Serial
-  while(client.available()){
+  while (client.available())
+  {
     String line = client.readStringUntil('\r');
     Serial.print(line);
   }
-  
+
   Serial.println();
   Serial.println("Closing connection");
 }
 
-void drawDateTime(OLEDDisplay *display, OLEDDisplayUiState* state, int16_t x, int16_t y) {
+void drawDateTime(OLEDDisplay *display, OLEDDisplayUiState *state, int16_t x, int16_t y)
+{
   char *dstAbbrev;
   char time_str[11];
   time_t now = dstAdjusted.time(&dstAbbrev);
-  struct tm * timeinfo = localtime (&now);
+  struct tm *timeinfo = localtime(&now);
 
   display->setTextAlignment(TEXT_ALIGN_CENTER);
   display->setFont(ArialMT_Plain_10);
@@ -344,15 +356,15 @@ void drawDateTime(OLEDDisplay *display, OLEDDisplayUiState* state, int16_t x, in
   display->setFont(ArialMT_Plain_10);
 #ifdef STYLE_24HR
   sprintf(time_str, "%s", dstAbbrev);
-  display->drawString(108 + x, 27 + y, time_str);  // Known bug: Cuts off 4th character of timezone abbreviation
+  display->drawString(108 + x, 27 + y, time_str); // Known bug: Cuts off 4th character of timezone abbreviation
 #else
   sprintf(time_str, "%s\n%s", dstAbbrev, timeinfo->tm_hour >= 12 ? "pm" : "am");
   display->drawString(102 + x, 18 + y, time_str);
 #endif
-
 }
 
-void drawCurrentWeather(OLEDDisplay *display, OLEDDisplayUiState* state, int16_t x, int16_t y) {
+void drawCurrentWeather(OLEDDisplay *display, OLEDDisplayUiState *state, int16_t x, int16_t y)
+{
   display->setFont(ArialMT_Plain_10);
   display->setTextAlignment(TEXT_ALIGN_LEFT);
   display->drawString(60 + x, 5 + y, wunderground.getWeatherText());
@@ -369,32 +381,34 @@ void drawCurrentWeather(OLEDDisplay *display, OLEDDisplayUiState* state, int16_t
   display->drawString(32 + x - weatherIconWidth / 2, 05 + y, weatherIcon);
 }
 
-
-void drawForecast(OLEDDisplay *display, OLEDDisplayUiState* state, int16_t x, int16_t y) {
+void drawForecast(OLEDDisplay *display, OLEDDisplayUiState *state, int16_t x, int16_t y)
+{
   drawForecastDetails(display, x, y, 0);
   drawForecastDetails(display, x + 44, y, 2);
   drawForecastDetails(display, x + 88, y, 4);
 }
 
-void drawForecast2(OLEDDisplay *display, OLEDDisplayUiState* state, int16_t x, int16_t y) {
+void drawForecast2(OLEDDisplay *display, OLEDDisplayUiState *state, int16_t x, int16_t y)
+{
   drawForecastDetails(display, x, y, 6);
   drawForecastDetails(display, x + 44, y, 8);
   drawForecastDetails(display, x + 88, y, 10);
 }
 
-void drawIndoor(OLEDDisplay *display, OLEDDisplayUiState* state, int16_t x, int16_t y) {
+void drawIndoor(OLEDDisplay *display, OLEDDisplayUiState *state, int16_t x, int16_t y)
+{
   display->setTextAlignment(TEXT_ALIGN_CENTER);
   display->setFont(ArialMT_Plain_10);
-  display->drawString(64 + x, 0, DHTTEXT " Indoor Sensor" );
+  display->drawString(64 + x, 0, DHTTEXT " Indoor Sensor");
   display->setFont(ArialMT_Plain_16);
   dtostrf(temperature, 4, 1, FormattedTemperature);
   display->drawString(64 + x, 12, "Temp: " + String(FormattedTemperature) + (IS_METRIC ? "°C" : "°F"));
   dtostrf(humidity, 4, 1, FormattedHumidity);
   display->drawString(64 + x, 30, "Humidity: " + String(FormattedHumidity) + "%");
-
 }
 
-void drawThingspeak(OLEDDisplay *display, OLEDDisplayUiState* state, int16_t x, int16_t y) {
+void drawThingspeak(OLEDDisplay *display, OLEDDisplayUiState *state, int16_t x, int16_t y)
+{
   display->setTextAlignment(TEXT_ALIGN_CENTER);
   display->setFont(ArialMT_Plain_10);
   display->drawString(64 + x, 0 + y, "Thingspeak Sensor");
@@ -404,7 +418,8 @@ void drawThingspeak(OLEDDisplay *display, OLEDDisplayUiState* state, int16_t x, 
   display->drawString(64 + x, 30 + y, thingspeak.getFieldValue(1) + "%");
 }
 
-void drawForecastDetails(OLEDDisplay *display, int x, int y, int dayIndex) {
+void drawForecastDetails(OLEDDisplay *display, int x, int y, int dayIndex)
+{
   display->setTextAlignment(TEXT_ALIGN_CENTER);
   display->setFont(ArialMT_Plain_10);
   String day = wunderground.getForecastTitle(dayIndex).substring(0, 3);
@@ -419,10 +434,11 @@ void drawForecastDetails(OLEDDisplay *display, int x, int y, int dayIndex) {
   display->setTextAlignment(TEXT_ALIGN_LEFT);
 }
 
-void drawHeaderOverlay(OLEDDisplay *display, OLEDDisplayUiState* state) {
+void drawHeaderOverlay(OLEDDisplay *display, OLEDDisplayUiState *state)
+{
   char time_str[11];
   time_t now = dstAdjusted.time(nullptr);
-  struct tm * timeinfo = localtime (&now);
+  struct tm *timeinfo = localtime(&now);
 
   display->setFont(ArialMT_Plain_10);
 
@@ -441,9 +457,12 @@ void drawHeaderOverlay(OLEDDisplay *display, OLEDDisplayUiState* state) {
   display->drawString(101, 52, temp);
 
   int8_t quality = getWifiQuality();
-  for (int8_t i = 0; i < 4; i++) {
-    for (int8_t j = 0; j < 2 * (i + 1); j++) {
-      if (quality > i * 25 || j == 0) {
+  for (int8_t i = 0; i < 4; i++)
+  {
+    for (int8_t j = 0; j < 2 * (i + 1); j++)
+    {
+      if (quality > i * 25 || j == 0)
+      {
         display->setPixel(120 + 2 * i, 61 - j);
       }
     }
@@ -460,23 +479,31 @@ void drawHeaderOverlay(OLEDDisplay *display, OLEDDisplayUiState* state) {
 }
 
 // converts the dBm to a range between 0 and 100%
-int8_t getWifiQuality() {
+int8_t getWifiQuality()
+{
   int32_t dbm = WiFi.RSSI();
-  if (dbm <= -100) {
+  if (dbm <= -100)
+  {
     return 0;
-  } else if (dbm >= -50) {
+  }
+  else if (dbm >= -50)
+  {
     return 100;
-  } else {
+  }
+  else
+  {
     return 2 * (dbm + 100);
   }
 }
 
-void setReadyForWeatherUpdate() {
+void setReadyForWeatherUpdate()
+{
   Serial.println("Setting readyForUpdate to true");
   readyForWeatherUpdate = true;
 }
 
-void setReadyForDHTUpdate() {
+void setReadyForDHTUpdate()
+{
   Serial.println("Setting readyForDHTUpdate to true");
   readyForDHTUpdate = true;
 }
