@@ -42,6 +42,11 @@
     Slight adjustment to overlay
 */
 
+#define READVCC
+#ifdef READVCC
+char FormattedVcc[10];
+#endif
+
 #include <simpleDSTadjust.h>
 #include "DHT.h"
 
@@ -77,8 +82,8 @@ const int UPDATE_INTERVAL_SECS = 600; // Update every 10 minutes
 const int I2C_DISPLAY_ADDRESS = 0x3c;
 // const int SDA_PIN = 0;
 // const int SDC_PIN = 2;
-const int SDA_PIN = D2;
-const int SDC_PIN = D3;
+const int SDA_PIN = D3;
+const int SDC_PIN = D2;
 #endif
 
 // DHT Settings

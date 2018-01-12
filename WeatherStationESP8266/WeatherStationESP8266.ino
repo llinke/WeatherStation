@@ -59,6 +59,10 @@
 #include "DSEG7Classic-BoldFont.h"
 #include "ThingspeakClient.h"
 
+#ifdef READVCC
+ADC_MODE(ADC_VCC);
+#endif
+
 // Initialize Wunderground client with METRIC setting
 WundergroundClient wunderground(IS_METRIC);
 
@@ -66,6 +70,7 @@ WundergroundClient wunderground(IS_METRIC);
 DHT dht(DHTPIN, DHTTYPE);
 float humidity = 0.0;
 float temperature = 0.0;
+float vcc = 0;
 
 ThingspeakClient thingspeak;
 
@@ -73,11 +78,16 @@ ThingspeakClient thingspeak;
 bool readyForWeatherUpdate = false;
 // flag changed in the ticker function every 1 minute
 bool readyForDHTUpdate = false;
+// flag changed in the ticker function every 10sec
+bool readyForVCCUpdate = false;
 
 String lastUpdate = "--";
 
 Ticker tickerWeather;
 Ticker tickerDHT;
+#ifdef READVCC
+Ticker tickerVCC;
+#endif
 
 //declaring prototypes
 void configModeCallback(WiFiManager *myWiFiManager);
@@ -187,6 +197,10 @@ void setup()
 
   tickerDHT.attach(60, setReadyForDHTUpdate);
   tickerWeather.attach(UPDATE_INTERVAL_SECS, setReadyForWeatherUpdate);
+#ifdef READVCC
+  updateVCC();
+  tickerVCC.attach(10, setReadyForVCCUpdate);
+#endif
 }
 
 void loop()
@@ -200,6 +214,11 @@ void loop()
   if (readyForDHTUpdate && ui.getUiState()->frameState == FIXED)
   {
     updateDHT();
+  }
+
+  if (readyForVCCUpdate && ui.getUiState()->frameState == FIXED)
+  {
+    updateVCC();
   }
 
   int remainingTimeBudget = ui.update();
@@ -259,18 +278,23 @@ void updateData(OLEDDisplay *display)
   drawProgress(display, 10, "Updating time...");
   configTime(UTC_OFFSET * 3600, 0, NTP_SERVERS);
 
-  drawProgress(display, 30, "Updating conditions...");
+  drawProgress(display, 25, "Updating conditions...");
   wunderground.updateConditions(WUNDERGRROUND_API_KEY, WUNDERGRROUND_LANGUAGE, WUNDERGROUND_COUNTRY, WUNDERGROUND_CITY);
-  drawProgress(display, 40, "Updating forecasts...");
+  drawProgress(display, 35, "Updating forecasts...");
   wunderground.updateForecast(WUNDERGRROUND_API_KEY, WUNDERGRROUND_LANGUAGE, WUNDERGROUND_COUNTRY, WUNDERGROUND_CITY);
 
-  drawProgress(display, 60, "Updating DHT Sensor");
+  drawProgress(display, 40, "Updating DHT Sensor");
   humidity = dht.readHumidity();
-  drawProgress(display, 70, "Updating DHT Sensor");
+  drawProgress(display, 50, "Updating DHT Sensor");
   temperature = dht.readTemperature(!IS_METRIC);
   delay(500);
 
-  drawProgress(display, 80, "Sending to thingspeak...");
+#ifdef READVCC
+  drawProgress(display, 60, "Updating VCC");
+  updateVCC();
+#endif
+
+  drawProgress(display, 75, "Sending to thingspeak...");
   sendToThingSpeak();
 
   drawProgress(display, 90, "Updating thingspeak...");
@@ -317,6 +341,10 @@ void sendToThingSpeak()
   url += String(temperature);
   url += "&field2=";
   url += String(humidity);
+#ifdef READVCC
+  url += "&field3=";
+  url += String(vcc);
+#endif
 
   Serial.print("Requesting URL: ");
   Serial.println(url);
@@ -340,6 +368,18 @@ void sendToThingSpeak()
 
   Serial.println();
   Serial.println("Closing connection");
+}
+
+// Called every 1 minute
+void updateVCC()
+{
+  Serial.println("Reading VCC...");
+  vcc = (ESP.getVcc() / 1024.00f);
+  dtostrf(vcc, 4, 2, FormattedVcc);
+  Serial.println("VCC: " + String(FormattedVcc) + "V");
+  //Serial.println("VCC: " + String(vcc) + "V");
+
+  readyForVCCUpdate = false;
 }
 
 void drawDateTime(OLEDDisplay *display, OLEDDisplayUiState *state, int16_t x, int16_t y)
@@ -451,12 +491,15 @@ void drawForecastDetails(OLEDDisplay *display, int x, int y, int dayIndex)
 
 void drawHeaderOverlay(OLEDDisplay *display, OLEDDisplayUiState *state)
 {
+  display->setFont(ArialMT_Plain_10);
+
+#ifdef READVCC
+  display->setTextAlignment(TEXT_ALIGN_LEFT);
+  display->drawString(5, 52, "VCC:" + String(FormattedVcc) + "V");
+#else
   char time_str[11];
   time_t now = dstAdjusted.time(nullptr);
   struct tm *timeinfo = localtime(&now);
-
-  display->setFont(ArialMT_Plain_10);
-
 #ifdef STYLE_24HR
   sprintf(time_str, "%02d:%02d:%02d\n", timeinfo->tm_hour, timeinfo->tm_min, timeinfo->tm_sec);
 #else
@@ -466,6 +509,7 @@ void drawHeaderOverlay(OLEDDisplay *display, OLEDDisplayUiState *state)
 
   display->setTextAlignment(TEXT_ALIGN_LEFT);
   display->drawString(5, 52, time_str);
+#endif
 
   display->setTextAlignment(TEXT_ALIGN_CENTER);
   String temp = wunderground.getCurrentTemp() + (IS_METRIC ? "°C" : "°F");
@@ -521,4 +565,10 @@ void setReadyForDHTUpdate()
 {
   Serial.println("Setting readyForDHTUpdate to true");
   readyForDHTUpdate = true;
+}
+
+void setReadyForVCCUpdate()
+{
+  Serial.println("Setting readyForVCCUpdate to true");
+  readyForVCCUpdate = true;
 }
