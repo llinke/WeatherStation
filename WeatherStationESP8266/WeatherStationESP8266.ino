@@ -111,6 +111,8 @@ int8_t getWifiQuality();
 //FrameCallback frames[] = {drawDateTime, drawCurrentWeather, drawIndoor, drawThingspeak, drawForecast, drawForecast2};
 FrameCallback frames[] = {drawDateTime, drawIndoor, drawThingspeak, drawCurrentWeather, drawForecast, drawForecast2};
 int numberOfFrames = 6;
+FrameCallback framesOffline[] = {drawIndoor}; //, drawDateTime};
+int numberOfFramesOffline = 1;                //2;
 
 OverlayCallback overlays[] = {drawHeaderOverlay};
 int numberOfOverlays = 1;
@@ -145,17 +147,18 @@ void setup()
   // wifiManager.resetSettings();
   wifiManager.setAPCallback(configModeCallback);
 
-  //or use this for auto generated name ESP + ChipID
-  wifiManager.autoConnect();
+  String hostname(HOSTNAME);
+  hostname += String(ESP.getChipId(), HEX);
 
   //Manual Wifi
   // WiFi.begin(SSID, PASSWORD);
-  String hostname(HOSTNAME);
-  hostname += String(ESP.getChipId(), HEX);
   WiFi.hostname(hostname);
+  //or use this for auto generated name ESP + ChipID
+  wifiManager.setTimeout(30);
+  wifiManager.autoConnect(hostname.c_str());
 
   int counter = 0;
-  while (WiFi.status() != WL_CONNECTED)
+  while (WiFi.status() != WL_CONNECTED && counter < 30 * 2)
   {
     delay(500);
     Serial.print(".");
@@ -183,7 +186,14 @@ void setup()
   // SLIDE_LEFT, SLIDE_RIGHT, SLIDE_TOP, SLIDE_DOWN
   ui.setFrameAnimation(SLIDE_LEFT);
 
-  ui.setFrames(frames, numberOfFrames);
+  if (WiFi.status() == WL_CONNECTED)
+  {
+    ui.setFrames(frames, numberOfFrames);
+  }
+  else
+  {
+    ui.setFrames(framesOffline, numberOfFramesOffline);
+  }
 
   ui.setOverlays(overlays, numberOfOverlays);
 
@@ -205,7 +215,6 @@ void setup()
 
 void loop()
 {
-
   if (readyForWeatherUpdate && ui.getUiState()->frameState == FIXED)
   {
     updateData(&display);
@@ -275,17 +284,26 @@ void drawOtaProgress(unsigned int progress, unsigned int total)
 
 void updateData(OLEDDisplay *display)
 {
+  bool wifiConnected = (WiFi.status() == WL_CONNECTED);
   drawProgress(display, 10, "Updating time...");
-  configTime(UTC_OFFSET * 3600, 0, NTP_SERVERS);
+  if (wifiConnected)
+  {
+    configTime(UTC_OFFSET * 3600, 0, NTP_SERVERS);
+  }
 
   drawProgress(display, 25, "Updating conditions...");
-  wunderground.updateConditions(WUNDERGRROUND_API_KEY, WUNDERGRROUND_LANGUAGE, WUNDERGROUND_COUNTRY, WUNDERGROUND_CITY);
+  if (wifiConnected)
+  {
+    wunderground.updateConditions(WUNDERGRROUND_API_KEY, WUNDERGRROUND_LANGUAGE, WUNDERGROUND_COUNTRY, WUNDERGROUND_CITY);
+  }
   drawProgress(display, 35, "Updating forecasts...");
-  wunderground.updateForecast(WUNDERGRROUND_API_KEY, WUNDERGRROUND_LANGUAGE, WUNDERGROUND_COUNTRY, WUNDERGROUND_CITY);
-
-  drawProgress(display, 40, "Updating DHT Sensor");
+  if (wifiConnected)
+  {
+    wunderground.updateForecast(WUNDERGRROUND_API_KEY, WUNDERGRROUND_LANGUAGE, WUNDERGROUND_COUNTRY, WUNDERGROUND_CITY);
+  }
+  drawProgress(display, 40, "Updating DHT Sensor (H)");
   humidity = dht.readHumidity();
-  drawProgress(display, 50, "Updating DHT Sensor");
+  drawProgress(display, 50, "Updating DHT Sensor (T)");
   temperature = dht.readTemperature(!IS_METRIC);
   delay(500);
 
@@ -298,7 +316,10 @@ void updateData(OLEDDisplay *display)
   sendToThingSpeak();
 
   drawProgress(display, 90, "Updating thingspeak...");
-  thingspeak.getLastChannelItem(THINGSPEAK_CHANNEL_ID, THINGSPEAK_API_READ_KEY);
+  if (wifiConnected)
+  {
+    thingspeak.getLastChannelItem(THINGSPEAK_CHANNEL_ID, THINGSPEAK_API_READ_KEY);
+  }
   readyForWeatherUpdate = false;
 
   drawProgress(display, 100, "Done...");
@@ -322,6 +343,9 @@ void updateDHT()
 
 void sendToThingSpeak()
 {
+  if (WiFi.status() != WL_CONNECTED)
+    return;
+
   Serial.print("Connecting to ");
   Serial.println(THINGSPEAK_HOST);
 
